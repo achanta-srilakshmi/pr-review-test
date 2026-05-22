@@ -12,7 +12,6 @@ interface MessageProducer {
     @Topic("metrics-gauge-update")
     void publishMetricsGaugeUpdate(@KafkaKey String bucketId, String payload)
 
-      @Topic("metrics-gauge-update")
-    void publishMetricsGaugeUpdate(@KafkaKey String bucketId, String payload)
+      
 }
 
