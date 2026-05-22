@@ -1,0 +1,144 @@
+<configuration scan="true" scanPeriod="30 minutes">
+    <property name="OCPP" value="./logs/ocpp.log" />
+    <property name="RAW" value="./logs/raw.log" />
+    <property name="SE" value="./logs/se.log" />
+    <property name="KAFKA" value="./logs/kafka.log" />
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <withJansi>true</withJansi>
+        <!-- encoders are assigned the type
+             ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%cyan(%d{HH:mm:ss.SSS}) %magenta(%logger{20}) %blue(%X{sessionId}) %highlight(%-5level) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="OCPP_LOGGER"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${OCPP}</file>
+
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>./logs/archived/ocpp.%d{yyyy-MM-dd}.%i.log.gz
+            </fileNamePattern>
+            <!-- each archived file, size max 10MB -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- total size of all archive files, if total size > 20GB, it will delete
+                    old archived file -->
+            <totalSizeCap>20GB</totalSizeCap>
+            <!-- Max hours to keep -->
+            <maxHistory>720</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d %logger %X{sessionId} %p %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="RAW_LOG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${RAW}</file>
+
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>./logs/archived/raw.%d{yyyy-MM-dd}.%i.log.gz
+            </fileNamePattern>
+            <!-- each archived file, size max 10MB -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- total size of all archive files, if total size > 20GB, it will delete
+                    old archived file -->
+            <totalSizeCap>20GB</totalSizeCap>
+            <!-- Max hours to keep -->
+            <maxHistory>720</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d %logger %X{sessionId} %p %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="SE_LOG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${SE}</file>
+
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>./logs/archived/se.%d{yyyy-MM-dd}.%i.log.gz
+            </fileNamePattern>
+            <!-- each archived file, size max 10MB -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- total size of all archive files, if total size > 20GB, it will delete
+                    old archived file -->
+            <totalSizeCap>20GB</totalSizeCap>
+            <!-- Max hours to keep -->
+            <maxHistory>720</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d %logger %X{sessionId} %p %msg%n</pattern>
+        </encoder>
+    </appender>
+    <appender name="KAFKA_LOG"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${KAFKA}</file>
+
+        <rollingPolicy
+                class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>./logs/archived/se.%d{yyyy-MM-dd}.%i.log.gz
+            </fileNamePattern>
+            <!-- each archived file, size max 10MB -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- total size of all archive files, if total size > 20GB, it will delete
+                    old archived file -->
+            <totalSizeCap>20GB</totalSizeCap>
+            <!-- Max hours to keep -->
+            <maxHistory>720</maxHistory>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d %logger %X{sessionId} %p %msg%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="se.ocpp16" level="info" additivity="true">
+        <appender-ref ref="SE_LOG" />
+    </logger>
+    <logger name="se.service" level="trace" additivity="true">
+        <appender-ref ref="SE_LOG" />
+    </logger>
+    <logger name="org.apache.kafka.clients.consumer.internals.ConsumerCoordinator" level="error" additivity="true">
+        <appender-ref ref="KAFKA_LOG" />
+    </logger>
+    <logger name="org.apache.kafka" level="error" additivity="true">
+        <appender-ref ref="KAFKA_LOG" />
+    </logger>
+
+    <logger name="eu.chargetime.ocpp.Communicator" level="trace" additivity="true">
+        <appender-ref ref="RAW_LOG" />
+    </logger>
+    <!-- <logger name="eu.chargetime.ocpp.Queue" level="error" additivity="true"/> -->
+
+    <logger name="io.micronaut.http.server.netty" level="error" additivity="true"/>
+    <logger name="org.hibernate.orm.deprecation" level="error" additivity="true"/>
+
+    <logger name="se.ocpp16.handlers" level="debug" additivity="true"/>
+    <logger name="se.ocpp16" level="debug" additivity="true"/>
+    <logger name="se" level="debug" additivity="true">
+        <appender-ref ref="STDOUT" />
+    </logger>
+    <logger name="com.evokesystems" level="error" additivity="true"/>
+
+    <logger name="se.ocpp16.handlers.ProtocolLog" level="debug" additivity="true">
+        <appender-ref ref="OCPP_LOGGER" />
+    </logger>
+
+    <logger name="org.apache.kafka.common.utils.AppInfoParser" level="error" additivity="true"/>
+    <logger name="org.apache.kafka.clients.consumer.ConsumerConfig" level="error" additivity="true"/>
+    <logger name="org.apache.kafka.clients.producer.ProducerConfig" level="error" additivity="true"/>
+    <logger name="org.apache.kafka.clients.admin.AdminClientConfig" level="error" additivity="true"/>
+    <logger name="org.apache.kafka" level="error" additivity="true"/>
+    <logger name="io.micronaut.context.condition" level="error" additivity="true"/>
+
+    <root level="error">
+        <appender-ref ref="STDOUT" />
+    </root>
+</configuration>

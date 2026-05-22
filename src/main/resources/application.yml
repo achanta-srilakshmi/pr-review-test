@@ -1,0 +1,134 @@
+micronaut:
+  config:
+    files: /home/app/extconfig/application.yml
+  server:
+    port: ${SE_REST_API_PORT:9465}
+  application:
+    name: se
+  security:
+    enabled: false
+  ssl:
+    enabled: false
+    keyStore:
+      path: file:///home/app/extconfig/evoke-keystore.p12
+      password: ${KEYSTORE_PASSWORD:changeit}
+      type: PKCS12
+  metrics:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+        descriptions: true
+        step: PT10S
+    binders:
+      kafka:
+        enabled: true
+      jvm:
+        enabled: true
+      web:
+        enabled: true
+      uptime:
+        enabled: true
+  executors:
+    consumer:
+      type: fixed
+      nThreads: 50
+  caches:
+    CredentialCache:
+      maximumSize: 10000
+      expireAfterWrite: 1h
+---
+jackson:
+  dateFormat: "yyyy-MM-dd'T'HH:mm:ssX"
+endpoints:
+  prometheus:
+    sensitive: false
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
+  loggers:
+    enabled: true
+  threaddump:
+    enabled: true
+  refresh:
+    enabled: true
+  info:
+    enabled: true
+---
+info:
+  app:
+    version: 1.0
+    description: Socket Edge
+---
+kafka:
+  enabled: false
+  bucketId: ${BUCKET_ID:"local-docker-0"}
+  bootstrap:
+    servers: http://localhost:29092
+  security:
+    protocol: PLAINTEXT
+  sasl.jaas.config: ""
+  sasl:
+    mechanism: PLAIN
+  client:
+    dns:
+      lookup: use_all_dns_ips
+  session:
+    timeout:
+      ms: 45000
+---
+se:
+  config:
+    connectionProfile: WSS #WS, WSS, WS_AUTH, WSS_AUTH
+    kafkaNodeId: ${BUCKET_ID:"local-docker-0"}
+    handler: ${SE_SERVICE_MODE:main}
+    scheduler: boundedElastic
+    webSocketPort: ${SE_WEB_SOCKET_PORT:9464}
+    authServerUrl: http://localhost:9951
+    adminServerUrl: http://localhost:9952
+    authBypass: false # Should always be false in production
+    logPassword: false # Should always be false in production
+    wss:
+      enabled: true
+      storeType: PKCS12
+      keyStore: ${KEYSTORE_PATH:src/main/resources/socket-edge2.p12}
+      storePassword: ${KEYSTORE_PASSWORD:2345678}
+      keyPassword: ${KEY_PASSWORD:2345678}
+      algorithm: SunX509
+      encryptionType: TLS
+      alias: ${KEYSTORE_ALIAS:socket-edge2}
+      wssPort: ${SE_WSS_PORT:9943}
+    authorizedSocket:
+      enabled: false
+      allowAnonymous: false
+    subprotocol:
+      strict: ${SE_SUBPROTOCOL_STRICT:false} # If true, only the subprotocols specified in SE_OCPP_SUBPROTOCOLS will be accepted; if false, SE_OCPP_SUBPROTOCOLS will be included in the header but not strictly validated
+    mtls:
+      enabled: ${SE_MTLS_ENABLED:false}
+      clientAuth: ${SE_MTLS_CLIENT_AUTH:OPTIONAL}
+      truststorePath: ${TRUSTSTORE_PATH:src/main/resources/simulator-truststore.p12}
+      truststorePassword: ${TRUSTSTORE_PASSWORD:simulator}
+      upgradeGracePeriodSeconds: ${SE_MTLS_UPGRADE_GRACE_PERIOD:60}
+    chargers:
+      heartbeatIntervalInSec: 180
+      statusUpdateFrequency: 5m
+      updateOnNewConnection: true
+      diagnosticLogLocation: ${DIAGNOSTIC_LOG_LOCATION:./diagnosticLogs}
+      syncFrequency: 360m
+    # Cache validation gate — US-SE-CACHE108-02 / US-SE-CACHE108-03
+    # Both flags default false: deploy enforcement-off, enable via K8s ConfigMap without redeployment
+    cacheValidation:
+      chargerIdCheck: ${SE_CHARGER_ID_CHECK:false}  # When true: reject unregistered chargers at WebSocket open (close 1008)
+      idTagCheck: ${SE_ID_TAG_CHECK:false}           # When true: reject invalid idTags on StartTransaction/Authorize
+    cacheRefresh:
+      fixedDelay: ${SE_CACHE_REFRESH_INTERVAL:5m}   # Poll interval for admin-service cache endpoints
+---
+dataSource:
+  pooled: true
+  dbCreate: update
+  url: jdbc:h2:${EDGE_DB:./edgeDb};LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+  driverClassName: org.h2.Driver
+  username: se
+  password: test
+  dialect: H2

@@ -1,0 +1,117 @@
+micronaut:
+  config:
+    files: /home/app/extconfig/application.yml
+  server:
+    port: ${SE_REST_API_PORT:9465}
+  application:
+    name: se
+  security:
+    enabled: false
+  ssl:
+    enabled: false
+    keyStore:
+      path: file:///home/app/extconfig/evoke-keystore.p12
+      password: ${KEYSTORE_PASSWORD:changeit}
+      type: PKCS12
+  metrics:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+        descriptions: true
+        step: PT30S
+    binders:
+      kafka:
+        enabled: true
+      jvm:
+        enabled: true
+      web:
+        enabled: true
+      uptime:
+        enabled: true
+  executors:
+    consumer:
+      type: fixed
+      nThreads: 50
+  caches:
+    CredentialCache:
+      maximumSize: 10000
+      expireAfterWrite: 1h
+
+---
+jackson:
+  dateFormat: "yyyy-MM-dd'T'HH:mm:ssX"
+endpoints:
+  prometheus:
+    sensitive: false
+  health:
+    enabled: true
+    sensitive: false
+    details-visible: ANONYMOUS
+  loggers:
+    enabled: true
+  threaddump:
+    enabled: true
+  refresh:
+    enabled: true
+---
+kafka:
+  enabled: false
+  bucketId: ${BUCKET_ID:"local-docker-0"}
+  bootstrap:
+    servers: ${KAFKA_URL}
+  security:
+    protocol: PLAINTEXT
+  sasl.jaas.config: ""
+  sasl:
+    mechanism: PLAIN
+  client:
+    dns:
+      lookup: use_all_dns_ips
+  session:
+    timeout:
+      ms: 45000
+---
+se:
+  config:
+    kafkaNodeId: ${BUCKET_ID:"local-docker-0"}
+    handler: ${SE_SERVICE_MODE:main}
+    scheduler: boundedElastic
+    webSocketPort: ${SE_WEB_SOCKET_PORT:9464}
+    authServerUrl: ${DM_SERVER_URL}
+    adminServerUrl: ${OSM_SERVER_URL}
+    authBypass: false # Should always be false in production
+    wss:
+      enabled: ${SE_WSS_ENABLED:true}
+      storeType: PKCS12
+      keyStore: ${KEYSTORE_PATH:"/home/app/certs/evoke-keystore.p12"}
+      storePassword: evoke123
+      keyPassword: evoke123
+      algorithm: SunX509
+      encryptionType: TLS
+      alias: ${KEYSTORE_ALIAS:evoke}
+      wssPort: ${SE_WSS_PORT:9943}
+    authorizedSocket:
+      enabled: true
+      credentials:
+        admin: admin123admin123
+        cso: secret123
+      allowAnonymous: true
+    subprotocol:
+      strict: ${SE_SUBPROTOCOL_STRICT:false}
+    chargers:
+      heartbeatIntervalInSec: 180
+      statusUpdateFrequency: 5m
+      updateOnNewConnection: true
+      diagnosticLogLocation: ${DIAGNOSTIC_LOG_LOCATION:/tmp/test-diag}
+    ports:
+      webSocket: ${SE_WEB_SOCKET_PORT:9464}
+---
+dataSource:
+  pooled: true
+  dbCreate: update
+  url: jdbc:h2:${EDGE_DB:./edgeDb};LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
+  driverClassName: org.h2.Driver
+  username: se
+  password: test
+  dialect: H2
